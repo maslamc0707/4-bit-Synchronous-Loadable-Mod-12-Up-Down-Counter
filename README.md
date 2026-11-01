@@ -98,3 +98,6 @@ make covhtml        # View coverage report in browser
 
 # 👤 Author
 ## Mo. Aslam Chaudhary
+---
+* B.Tech: Electronics and Communication Engineering
+* Focus: VLSI Design & Design Verification

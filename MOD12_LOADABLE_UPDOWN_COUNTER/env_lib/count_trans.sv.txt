@@ -1,0 +1,35 @@
+
+class count_trans;
+
+   //Interface Signals
+   rand logic [3:0] data_in;
+   rand logic       load;
+   rand logic       up_down;
+   rand logic            resetn;
+   logic [3:0]      count;
+
+   //Constraints
+   constraint C1 {data_in inside {[0:11]};}
+   constraint C2 {load dist {1 := 30, 0 := 70};}
+   constraint C3 {up_down dist {0 := 50, 1 := 50};}
+   constraint C4 {resetn dist {0:=10, 1:=95};}
+   constraint mis_bin {
+                        data_in dist {
+                                       [0:4]  := 33,
+                                       [5:7]  :=  33,
+                                       [8:11]  := 34};}
+
+   //Display method
+   virtual function void display(input string s);
+      begin
+         $display("....................................%s....................................", s);
+         $display("Up_down = %d", up_down);
+         $display("load = %d", load);
+         $display("data_in = %d", data_in);
+         $display("count = %d", count);
+         $display("resetn = %d", resetn);
+         $display("..........................................................................");
+      end
+   endfunction
+
+endclass

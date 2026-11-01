@@ -1,0 +1,107 @@
+
+class count_sb;
+
+    event DONE;
+
+    count_trans rm_data;
+    count_trans sb_data;
+    count_trans cov_data;
+
+    static int ref_cnt, rm_cnt, data_verified;
+
+    mailbox #(count_trans) ref2sb;
+    mailbox #(count_trans) rdm2sb;
+
+
+    covergroup mem_coverage;
+      option.per_instance=1;
+
+      DATA: coverpoint cov_data.data_in{
+                          bins LOW  = {[0:4]};
+                          bins MID  = {[5:7]};
+                          bins HIGH = {[8:11]};
+}
+
+
+     LOAD: coverpoint cov_data.load{
+                         bins LOW = {0};
+                         bins HIGH = {1};
+}
+
+
+    UP_DOWN: coverpoint cov_data.up_down{
+                             bins LOW = {0};
+                             bins HIGH = {1};
+
+}
+
+
+    RESET:  coverpoint cov_data.resetn{
+                                bins LOW = {0};
+                                bins HIGH = {1};
+
+}
+
+
+     COUNT: coverpoint cov_data.count{
+                                   bins LOW = (0 => 11);
+                                   bins HIGH = (11 => 0);
+
+}
+
+
+     LOADxDATA : cross LOAD, DATA,RESET,UP_DOWN;
+
+endgroup
+
+
+    function new(mailbox #(count_trans) ref2sb,
+                 mailbox #(count_trans) rdm2sb);
+        this.ref2sb = ref2sb;
+        this.rdm2sb = rdm2sb;
+
+     mem_coverage = new();
+    endfunction
+
+
+    virtual task check(count_trans rdata);
+
+            if(rm_data.count == rdata.count)
+                $display("Count Matching");
+            else
+                $display("Count not matching");
+
+              cov_data = new();
+              cov_data = rm_data;
+             mem_coverage.sample();
+
+        data_verified++;
+        if(data_verified >= no_of_transactions)
+        begin
+            ->DONE;
+        end
+    endtask
+
+    virtual task start();
+        fork
+           while(1)
+            begin
+                ref2sb.get(rm_data);
+                ref_cnt++;
+                rdm2sb.get(sb_data);
+                rm_cnt++;
+                check(sb_data);
+            end
+        join_none
+    endtask
+
+
+    virtual function void report();
+        $display(".................. SCOREBOARD REPORT ..................");
+        $display(" Data generated = %d", rm_cnt);
+        $display(" Data verified = %d", data_verified);
+        $display("Data expexted = %d", ref_cnt);
+        $display(".......................................................");
+    endfunction
+
+endclass
